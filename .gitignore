@@ -1,0 +1,19 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+#unignore makefile
+!Makefile
+
+#ignore test file and copyrighted fonts
+*.ttf
+*.txt
+
+
+#ignore VSCode stuff
+.vscode/*

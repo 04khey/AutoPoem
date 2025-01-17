@@ -18,6 +18,8 @@
 *.xcf
 *.gif
 *.png
+*.jpg
+*.jpeg
 
 
 #ignore VSCode stuff

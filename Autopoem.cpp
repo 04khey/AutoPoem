@@ -8,7 +8,6 @@
 #include <ImageMagick-7/Magick++.h> 
 #include <iostream>
 #include <fstream>
-//#include <queue>
 #include <vector>
 
 
@@ -17,6 +16,9 @@
 
 
 vector<string> poem;
+int marginpx = 20;
+
+
 
 int readPoem(){
      //ifstream f(argv[1] + ".txt");
@@ -39,6 +41,42 @@ int readPoem(){
     return 0;
 }
 
+int getPtSizeTarget(string longestLine, Image image){
+    int targetWidth = 1080 - 2 * marginpx;
+    //size_points = (size_pixels * 72)/resolution
+
+
+    TypeMetric currLineMetrics;
+    //should be an under-estimate.
+    int lower = (targetWidth)/ (longestLine.size());
+    int higher = 100; //max acceptible size
+    int test = lower;
+
+    image.fontPointsize(lower);
+
+    int width = 9999;
+    while((lower != higher) ){
+        image.fontTypeMetrics(longestLine, &currLineMetrics);
+        width = currLineMetrics.textWidth();
+
+        std::cout<< "ptsize: " << test << " width: " << width << "\n";
+
+        if(width > targetWidth){
+            higher = test;
+        } else{
+            lower = test;
+        }
+        int adjustment = lower + ((higher - lower) / 2);
+        test = adjustment > 0 ? adjustment : 1;
+        image.fontPointsize(test);
+
+        if(test == lower) {return test;}
+    }
+
+    return lower;
+
+}
+
 
 int main( ssize_t argc, char ** argv)
 {
@@ -47,9 +85,7 @@ int main( ssize_t argc, char ** argv)
         return -1;
     }
 
-    for(int i=0;i<poem.size();i++){
-        std::cout<< i << ": " << poem[i] <<"\n";
-    }
+    
    
 
     InitializeMagick(*argv);
@@ -59,18 +95,43 @@ int main( ssize_t argc, char ** argv)
     // set the text rendering font (the color is determined by the "current" image setting)
     my_image.font("EVA-Matisse_Standard-EB");
     my_image.fontPointsize(100);
-    // draw text with different gravity position
-    my_image.annotate("NorthWest gravity annotation", NorthWestGravity);
-    my_image.annotate("SouthEast gravity annotation", SouthEastGravity);
+    
     
     //https://imagemagick.org/Magick++/Geometry.html
 
+    int longestLine = 0;
+    int maxWidth = 0;
+
+    TypeMetric currLineMetrics;
+    my_image.fontTypeMetrics(poem[0], &currLineMetrics);
+    std::cout << "width: " << currLineMetrics.textWidth();
+
+    for(int i=0;i<poem.size();i++){
+        
+        my_image.fontTypeMetrics(poem[i], &currLineMetrics);
+        int currWidth = currLineMetrics.textWidth();
+        if(currWidth > maxWidth ){
+            maxWidth = currWidth;
+            longestLine = i;
+        }
+        std::cout<< i << ": " << poem[i] << " -- " << currWidth << "\n";
+    }
+
+    std::cout<< "longest line: " << longestLine << "\n" << maxWidth << "\n";
+
+    int ptSize = getPtSizeTarget(poem[longestLine], my_image);
+    my_image.fontPointsize(ptSize);
+
+    
+    
+
     Geometry test("1080x200+0+100");
 
-    //my_image.annotate(poem[0], CenterGravity);
-    my_image.annotate(poem[0], test, CenterGravity);
+    my_image.annotate(poem[longestLine], CenterGravity);
+    //my_image.annotate(poem[longestLine], test, CenterGravity);
 
     my_image.write("out.png");
+    
 
     return 0;
 }

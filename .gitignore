@@ -10,7 +10,7 @@
 #unignore makefile
 !Makefile
 
-#ignore test file and copyrighted fonts
+#ignore test file(s) and copyrighted fonts
 *.ttf
 *.txt
 

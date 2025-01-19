@@ -16,11 +16,17 @@
 
 
 vector<string> poem;
-int marginpx = 20;
+int sideMarginPx = 20;
+int topMarginPx = 20;
+int lineSpacing = 10;
+vector<int> runs;
 
 
 
 int readPoem(){
+    
+    int runCounter=0;
+
      //ifstream f(argv[1] + ".txt");
     ifstream f("seapoemspooky.txt"); //debug
 
@@ -32,9 +38,20 @@ int readPoem(){
 
     for (int i=0;getline(f, s) ;i++){
 
+        if(s == ""){ //empty line
+            runs.push_back(runCounter);
+            runCounter = 0;
+
+        } else {
+            runCounter++;
+        }
+
         poem.push_back(s);
         //poem[i] = s;
     }
+    runs.push_back(runCounter);
+
+
 
     f.close();
 
@@ -42,7 +59,7 @@ int readPoem(){
 }
 
 int getPtSizeTarget(string longestLine, Image image){
-    int targetWidth = 1080 - 2 * marginpx;
+    int targetWidth = 1080 - 2 * sideMarginPx;
     //size_points = (size_pixels * 72)/resolution
 
 
@@ -59,7 +76,7 @@ int getPtSizeTarget(string longestLine, Image image){
         image.fontTypeMetrics(longestLine, &currLineMetrics);
         width = currLineMetrics.textWidth();
 
-        std::cout<< "ptsize: " << test << " width: " << width << "\n";
+        //std::cout<< "ptsize: " << test << " width: " << width << "\n";
 
         if(width > targetWidth){
             higher = test;
@@ -77,6 +94,46 @@ int getPtSizeTarget(string longestLine, Image image){
 
 }
 
+int getMaxPageLines(string tallestLine, Image image){
+
+    TypeMetric currLineMetrics;
+    image.fontTypeMetrics(tallestLine, &currLineMetrics);
+
+    int lineHeight = currLineMetrics.textHeight();
+
+    int maxLines = (1080 - (2 * topMarginPx) ) / (lineHeight + lineSpacing);
+
+    return maxLines;
+}
+
+vector<int> squeezeRuns(int maxLines, vector<int> runsIn){
+    int runningCount =0;
+    vector<int> squeezed;
+    for(int i=0;i<runsIn.size();i++){
+        if(runsIn[i] > maxLines){
+            if(runningCount > 0){
+                squeezed.push_back(runningCount);
+                runningCount = 0;
+            }
+            squeezed.push_back(runsIn[i]);
+
+        } else if (runsIn[i] + runningCount > maxLines){
+            squeezed.push_back(runningCount);
+            runningCount = runsIn[i];
+        } else {
+            if(runsIn[i] == 0){
+                runningCount += 1; //maintain spaces between two verses on same image
+            } else {
+                runningCount += runsIn[i];
+            }
+            
+        }
+    }
+    if(runningCount > 0){
+        squeezed.push_back(runningCount);
+    }
+    return squeezed;
+}
 
 int main( ssize_t argc, char ** argv)
 {
@@ -85,8 +142,9 @@ int main( ssize_t argc, char ** argv)
         return -1;
     }
 
-    
-   
+    for(int i =0;i<runs.size();i++){
+        std::cout<< runs[i] << ",";
+    } std::cout<< "\n";
 
     InitializeMagick(*argv);
 
@@ -94,17 +152,19 @@ int main( ssize_t argc, char ** argv)
     Image my_image( Geometry(1080,1080), Color("white"));
     // set the text rendering font (the color is determined by the "current" image setting)
     my_image.font("EVA-Matisse_Standard-EB");
-    my_image.fontPointsize(100);
+    
     
     
     //https://imagemagick.org/Magick++/Geometry.html
 
     int longestLine = 0;
+    int tallestLine = 0;
+
     int maxWidth = 0;
+    int maxHeight = 0;
+    
 
     TypeMetric currLineMetrics;
-    my_image.fontTypeMetrics(poem[0], &currLineMetrics);
-    std::cout << "width: " << currLineMetrics.textWidth();
 
     for(int i=0;i<poem.size();i++){
         
@@ -114,6 +174,11 @@ int main( ssize_t argc, char ** argv)
             maxWidth = currWidth;
             longestLine = i;
         }
+        int currHeight = currLineMetrics.textHeight();
+        if(currHeight > maxHeight ){
+            maxHeight = currHeight;
+            tallestLine = i;
+        }
         std::cout<< i << ": " << poem[i] << " -- " << currWidth << "\n";
     }
 
@@ -122,12 +187,24 @@ int main( ssize_t argc, char ** argv)
     int ptSize = getPtSizeTarget(poem[longestLine], my_image);
     my_image.fontPointsize(ptSize);
 
-    
-    
+    int maxLines = getMaxPageLines(poem[tallestLine], my_image);
 
-    Geometry test("1080x200+0+100");
+    vector<int> optimumRuns = squeezeRuns(maxLines, runs);
 
-    my_image.annotate(poem[longestLine], CenterGravity);
+    for(int i : optimumRuns){
+        std::cout<< i << ",";
+    }
+    
+    std::cout<< "max page lines: " << maxLines << "\n";
+
+
+    Geometry testGeom("1080x200+0+100");
+    //my_image.annotate(poem[longestLine], CenterGravity);
+
+    string test = "line 1\nline 2 blah blah blah\nline 3";
+
+    my_image.annotate(test, testGeom, WestGravity);
+
     //my_image.annotate(poem[longestLine], test, CenterGravity);
 
     my_image.write("out.png");

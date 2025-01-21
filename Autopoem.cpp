@@ -58,6 +58,21 @@ int readPoem(){
     return 0;
 }
 
+int getLongestLineLength(int ptSize, string lines[], int numLines, Image image){
+    TypeMetric currLineMetrics;
+    int length = 0;
+
+    for(int i=0;i< numLines;i++){
+        image.fontTypeMetrics(lines[i], &currLineMetrics);
+        if(currLineMetrics.textWidth() > length){
+            length = currLineMetrics.textWidth();
+        }
+    }
+    
+    return length;
+
+}
+
 int getPtSizeTarget(string longestLine, Image image){
     int targetWidth = 1080 - 2 * sideMarginPx;
     //size_points = (size_pixels * 72)/resolution
@@ -141,10 +156,12 @@ void createImage(string lines[], int fontSize, int imageNum, int numLines, int m
     outImage.font("EVA-Matisse_Standard-EB");
     outImage.fontPointsize(fontSize);
 
-    //int linesInArr = sizeof(lines) / sizeof(lines[0]);
+    int maxLength = getLongestLineLength(fontSize, lines, numLines, outImage);
+
+    int topOffset = (1080 - topMarginPx - (numLines * (maxHeight + lineSpacing) * 2));
 
     for(int i=0;i<numLines;i++){
-        Geometry currTextGeom(1080, 1080, sideMarginPx, -(1080/2) + topMarginPx + (i * 2 *(maxHeight + lineSpacing))); //w, h, xoff, yoff
+        Geometry currTextGeom(1080, 1080, sideMarginPx + (1080 - (2 * sideMarginPx) - maxLength)/2, -(1080/2) + topMarginPx + topOffset+ (i * 2 *(maxHeight + lineSpacing))); //w, h, xoff, yoff
         //Geometry currTextGeom(1080, 1080, sideMarginPx,  topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
         outImage.annotate(lines[i], currTextGeom, WestGravity);
     }

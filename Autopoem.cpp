@@ -16,9 +16,9 @@
 
 
 vector<string> poem;
-int sideMarginPx = 20;
-int topMarginPx = 20;
-int lineSpacing = 10;
+int sideMarginPx = 100;
+int topMarginPx = 200;
+int lineSpacing = 20;
 vector<int> runs;
 
 
@@ -58,12 +58,32 @@ int readPoem(){
     return 0;
 }
 
-int getLongestLineLength(int ptSize, string lines[], int numLines, Image image){
+void printVector(vector<string> in){ //todo: use autos for indices, replace some of these vectors with std::arrays
+    for(int i=0;i<in.size();i++){
+        std::cout << i << ": " << in[i];
+    }
+}
+
+void trimArray(vector<string> in){
+    return;
+    //int start = 0;
+    //int end = *sizePtr -1;
+    while(in.front() == ""){
+        in.erase(in.begin());
+    }
+    while(in.back() == ""){
+        in.pop_back();
+    }
+    //*sizePtr = end - start + 1;
+    //return &array[start];
+}
+
+int getLongestLineLength(int ptSize, vector<string> lines, int numLines, Image image){
     TypeMetric currLineMetrics;
     int length = 0;
 
     for(int i=0;i< numLines;i++){
-        image.fontTypeMetrics(lines[i], &currLineMetrics);
+        image.fontTypeMetrics(lines.at(i), &currLineMetrics);
         if(currLineMetrics.textWidth() > length){
             length = currLineMetrics.textWidth();
         }
@@ -150,7 +170,10 @@ vector<int> squeezeRuns(int maxLines, vector<int> runsIn){
     return squeezed;
 }
 
-void createImage(string lines[], int fontSize, int imageNum, int numLines, int maxHeight){
+void createImage(vector<string> lines, int fontSize, int imageNum, int numLines, int maxHeight){
+
+    trimArray(lines);
+
     Image outImage( Geometry(1080,1080), Color("white"));
     // set the text rendering font (the color is determined by the "current" image setting)
     outImage.font("EVA-Matisse_Standard-EB");
@@ -159,11 +182,12 @@ void createImage(string lines[], int fontSize, int imageNum, int numLines, int m
     int maxLength = getLongestLineLength(fontSize, lines, numLines, outImage);
 
     int topOffset = (1080 - topMarginPx - (numLines * (maxHeight + lineSpacing) * 2));
+    std::cout << numLines <<" lines"<<", first line: " << lines[0] << "last line: " << lines[numLines - 1] << "\noffset: " << topOffset << "px\n";
 
     for(int i=0;i<numLines;i++){
-        Geometry currTextGeom(1080, 1080, sideMarginPx + (1080 - (2 * sideMarginPx) - maxLength)/2, -(1080/2) + topMarginPx + topOffset+ (i * 2 *(maxHeight + lineSpacing))); //w, h, xoff, yoff
+        Geometry currTextGeom(1080, 1080, sideMarginPx + (1080 - (2 * sideMarginPx) - maxLength)/2, -(1080/2) + topMarginPx + topOffset+ (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
         //Geometry currTextGeom(1080, 1080, sideMarginPx,  topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
-        outImage.annotate(lines[i], currTextGeom, WestGravity);
+        outImage.annotate(lines.at(i), currTextGeom, WestGravity);
     }
     //my_image.annotate(test, testGeom, WestGravity);
 
@@ -179,10 +203,10 @@ void createImages(vector<int> squeezedLines, int fontSize, int maxHeight){
     int numRequired = squeezedLines.size();
     int count = 0;
     for(int i=0;i<squeezedLines.size(); i++){
-        string lines[squeezedLines[i]];
+        vector<string> lines;
 
         for(int j = 0; j < squeezedLines[i];j++){
-            lines[j] = poem[count];
+            lines.push_back(poem[count]);
             count++;
         }
 

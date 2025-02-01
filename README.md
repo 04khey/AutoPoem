@@ -20,8 +20,8 @@ ImageMagick
 # Timeline:
 
 Test image generation using Imagemagick   
-Generate one large image from a text file **<--- HERE** <br>
-Dynamically partition this image on line boundaries <br>
+Generate one large image from a text file 
+Dynamically partition this image on line boundaries <br>  **<--- HERE** <br>
 Centre text vertically in each square image <br>
 Accept custom fonts <br>
 Analyse a given text file and request the required (N*1080)x1080 custom continuous background image <br>

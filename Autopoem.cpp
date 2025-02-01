@@ -12,10 +12,10 @@
 
 
  using namespace Magick;
- using namespace std;
+ using namespace std; //this is supposedly bad practice. But this is a small project, so should be fine?
 
 
-vector<string> poem;
+vector<string> poem; //should this be vector<string*>?
 int sideMarginPx = 100;
 int topMarginPx = 200;
 int lineSpacing = 20;

@@ -29,7 +29,17 @@ vector<int> genRandomVec(int maxWidth, int length){
     return out;
 }
 
+vector<string> modifyThing(vector<string> in){
+    in.push_back("decayed?");
+    return in;
+}
+
+void byRef(vector<string> &in){
+    in.push_back("notDecayed?");
+}
+
 int main(){
+    /*
     for(int i=0;i<1;i++){
         vector<int> testData = genRandomVec(9,20);
         vector<int> brute = bruteSqueeze(testData);
@@ -39,5 +49,12 @@ int main(){
             EXPECT_EQ(brute[j], naive[j]) << "Vectors x and y differ at index " << j;
         }
         
-    }
+    }*/
+    vector<string> arrayDecayTestA = {"one", "two", "three", "four"};
+    vector<string> arrayDecayTestB = {"one", "two", "three", "four"};
+
+
+    std::cout  << modifyThing(arrayDecayTestA)[0] << " size:" << modifyThing(arrayDecayTestA).size();
+    byRef(arrayDecayTestB);
+    std::cout  << arrayDecayTestB[0] << arrayDecayTestB[4] << " size:" << arrayDecayTestB.size();
 }

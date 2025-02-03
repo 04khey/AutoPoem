@@ -19,8 +19,8 @@ ImageMagick
 
 # Timeline:
 
-Test image generation using Imagemagick   
-Generate one large image from a text file 
+Test image generation using Imagemagick   <br>
+Generate one large image from a text file  <br>
 Dynamically partition this image on line boundaries <br>  **<--- HERE** <br>
 Centre text vertically in each square image <br>
 Accept custom fonts <br>

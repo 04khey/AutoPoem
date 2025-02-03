@@ -24,7 +24,7 @@ struct lineMaxes{
 
 
 //vector<string> poem; //should this be vector<string*>? Probs not. Surely string* is the default. 
-int sideMarginPx = 100;
+int sideMarginPx = 0;
 int topMarginPx = 200;
 int lineSpacing = 20;
 //vector<int> runs;
@@ -234,22 +234,22 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
 
     //int maxLength = getLongestLineLength(fontSize, lines, numLines, outImage);
     int startVerseIndex = 0;
-    for(int i=0;i<imageNum;i++){
+    for(int i=0;i<imageNum-1;i++){
         
         startVerseIndex += numVersesInImages[i];
         std::cout<<"i: " << i << ", numVersesInImages[i]: " << numVersesInImages[i] << " svi: " << startVerseIndex <<"\n";
     }
 
-    std::cout<<"size versemamlinel: " << numVersesInImages[startVerseIndex] << "\n";
-    int verseMaxLineLengths[numVersesInImages[startVerseIndex]];
-    for(int i=startVerseIndex;i<numVersesInImages[startVerseIndex]+startVerseIndex;i++){
+    std::cout<<"size versemamlinel: " << numVersesInImages[imageNum] << "\n";
+    int verseMaxLineLengths[numVersesInImages[imageNum]];
+    for(int i=startVerseIndex;i<numVersesInImages[imageNum]+startVerseIndex;i++){
         lineMaxes tempLineMaxes = getLineMaxes(verses[i], &outImage, &tm);
         verseMaxLineLengths[i-startVerseIndex] = tempLineMaxes.maxWidth;
         std::cout << "verse " << imageNum << " max: " << tempLineMaxes.maxWidth << "\n";
     }
 
     std::cout<<"start verse index: " << startVerseIndex << "\n";
-    int maxLength = getMaxElementInArray(verseMaxLineLengths, numVersesInImages[startVerseIndex]);
+    int maxLength = getMaxElementInArray(verseMaxLineLengths, numVersesInImages[imageNum]);
 
     std::cout << "max line length for " << imageNum << ": " << maxLength << "\n";
 
@@ -285,13 +285,41 @@ void createImages(vector<int> numVersesInImages, int fontSize, int maxHeight){
             for(string s : verses[verseIndex+j]){
                 lines.push_back(s);
             }
-            lines.push_back("\n");   
+            if(j != numVersesInImages[i]-1){
+                lines.push_back("\n"); 
+            }
+              
         }
 
 
         createImage(lines, fontSize, i, maxHeight);
 
         verseIndex += numVersesInImages[i];
+    }
+
+
+}
+
+void genNumVersesInImages(vector<vector<string>> verses, int maxLines){
+    int currentVerseCount=0;
+    int currentLineCount=0;
+    std::cout << "beep!\n";
+    for(vector<string> verse : verses){
+        std::cout<< "verse starting \n"<<verse[0] << "\n.verseCount: " << currentVerseCount << ", lineCount: " << currentLineCount << "\n";
+        //TODO: if verse longer than maxlines, chunk verse and generate new verses vector
+        if((verse.size() + 1 + currentLineCount > maxLines) && currentVerseCount>0){
+            numVersesInImages.push_back(currentVerseCount);
+            currentVerseCount = 1;
+            currentLineCount = verse.size(); 
+            
+        } else {
+            currentLineCount = currentLineCount + 1 + verse.size();
+            currentVerseCount++;
+        }
+    }
+
+    if(currentVerseCount > 0){
+        numVersesInImages.push_back(currentVerseCount);
     }
 
 
@@ -344,23 +372,22 @@ int main( ssize_t argc, char ** argv)
 
     int maxLines = getMaxPageLines(verses[0][verseMaxes[0].tallestLine], my_image);
 
-    vector<int> optimumRuns;
-    for(vector<string> v : verses){
-        optimumRuns.push_back(1);
-        numVersesInImages.push_back(1);
-    }
+    //vector<int> optimumRuns;
+
+
+    
+
+    genNumVersesInImages(verses, maxLines);
 
     //vector<int> optimumRuns = squeezeRuns(maxLines, runs);
 
     for(int i : numVersesInImages){
         std::cout<< i << ",";
     }
-    char c;
-    cin.get(c);
     
     std::cout<< "max page lines: " << maxLines << "\n";
 
-    createImages(optimumRuns, ptSize, verseMaxes[0].maxHeight);
+    createImages(numVersesInImages, ptSize, verseMaxes[0].maxHeight);
 
     //Geometry testGeom("1080x200+0+100");
     

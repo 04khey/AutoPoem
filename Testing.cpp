@@ -2,6 +2,7 @@
 #include <random>
 #include <iostream>
 #include <vector>
+#include <ImageMagick-7/Magick++.h> 
 
 using namespace std;
 
@@ -38,7 +39,27 @@ void byRef(vector<string> &in){
     in.push_back("notDecayed?");
 }
 
+void drawTestImage()
+{
+    using namespace Magick;
+
+    Image outImage( Geometry(1080,1080), Color("white"));
+    outImage.font("EVA-Matisse_Standard-EB");
+    outImage.fontPointsize(38);
+    
+    TypeMetric testLineInfo;
+
+    outImage.fontTypeMetrics("Tortured by tremors and pushed close to breaking,", &testLineInfo );
+
+    std::cout<<"text height: "<<testLineInfo.textHeight();
+
+    Geometry currTextGeom(1080, 1080, 0, 0); //w, h, xoff, yoff
+    outImage.annotate("Tortured by tremors and pushed close to breaking,", currTextGeom, NorthWestGravity);
+    outImage.write("test.png");
+}
+
 int main(){
+    drawTestImage();
     /*
     for(int i=0;i<1;i++){
         vector<int> testData = genRandomVec(9,20);
@@ -50,11 +71,14 @@ int main(){
         }
         
     }*/
+    /*
     vector<string> arrayDecayTestA = {"one", "two", "three", "four"};
     vector<string> arrayDecayTestB = {"one", "two", "three", "four"};
 
 
     std::cout  << modifyThing(arrayDecayTestA)[0] << " size:" << modifyThing(arrayDecayTestA).size();
     byRef(arrayDecayTestB);
-    std::cout  << arrayDecayTestB[0] << arrayDecayTestB[4] << " size:" << arrayDecayTestB.size();
+    std::cout  << arrayDecayTestB[0] << arrayDecayTestB[4] << " size:" << arrayDecayTestB.size();*/
+
+
 }

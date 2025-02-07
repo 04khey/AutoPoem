@@ -24,9 +24,9 @@ struct lineMaxes{
 
 
 //vector<string> poem; //should this be vector<string*>? Probs not. Surely string* is the default. 
-int sideMarginPx = 0;
+int sideMarginPx = 60;
 int topMarginPx = 200;
-int lineSpacing = 20;
+int lineSpacing = 60;
 //vector<int> runs;
 
 vector<vector<string>> verses;
@@ -234,7 +234,7 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
 
     //int maxLength = getLongestLineLength(fontSize, lines, numLines, outImage);
     int startVerseIndex = 0;
-    for(int i=0;i<imageNum-1;i++){
+    for(int i=0;i<imageNum;i++){
         
         startVerseIndex += numVersesInImages[i];
         std::cout<<"i: " << i << ", numVersesInImages[i]: " << numVersesInImages[i] << " svi: " << startVerseIndex <<"\n";
@@ -251,15 +251,15 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
     std::cout<<"start verse index: " << startVerseIndex << "\n";
     int maxLength = getMaxElementInArray(verseMaxLineLengths, numVersesInImages[imageNum]);
 
-    std::cout << "max line length for " << imageNum << ": " << maxLength << "\n";
+    std::cout << "max line length for image " << imageNum << ": " << maxLength << "\n";
 
-    int topOffset = (1080 - topMarginPx - (numLines * (maxHeight + lineSpacing) * 2));
-    std::cout << numLines <<" lines"<<", first line: " << lines[0] << "last line: " << lines[numLines - 1] << "\noffset: " << topOffset << "px\n";
+    //int topOffset = (1080 - topMarginPx - (numLines * (maxHeight + lineSpacing) * 2));
+    std::cout << numLines <<" lines"<<", first line: " << lines[0] << "last line: " << lines[numLines - 1] << "\n";
 
     for(int i=0;i<numLines;i++){
-        Geometry currTextGeom(1080, 1080, sideMarginPx + (1080 - (2 * sideMarginPx) - maxLength)/2, -(1080/2) + topMarginPx + topOffset+ (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
+        Geometry currTextGeom(1080, 1080, sideMarginPx + (1080 - (2 * sideMarginPx) - maxLength)/2, topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
         //Geometry currTextGeom(1080, 1080, sideMarginPx,  topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
-        outImage.annotate(lines.at(i), currTextGeom, WestGravity);
+        outImage.annotate(lines.at(i), currTextGeom, NorthWestGravity);
     }
     //my_image.annotate(test, testGeom, WestGravity);
 

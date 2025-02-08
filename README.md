@@ -24,7 +24,7 @@ Generate one large image from a text file  <br>
 Dynamically partition this image on line boundaries   <br>
 Centre text vertically in each square image <br>
 Accept custom fonts **<--- HERE** <br>
-Analyse a given text file and request the required 1080x(N*1080) custom continuous background image <br>
+Analyse a given text file and request the required (N*1080)x1080 custom continuous background image (users swipe horizontally, so the image must be wide rather than tall) <br>
 Title image generation with encodable legend/key images<br>
 Text from STDIN<br>
 Parse user flags for these <br

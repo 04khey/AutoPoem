@@ -21,9 +21,9 @@ ImageMagick
 
 Test image generation using Imagemagick   <br>
 Generate one large image from a text file  <br>
-Dynamically partition this image on line boundaries   **<--- HERE** <br>
+Dynamically partition this image on line boundaries   <br>
 Centre text vertically in each square image <br>
-Accept custom fonts <br>
+Accept custom fonts **<--- HERE** <br>
 Analyse a given text file and request the required (N*1080)x1080 custom continuous background image <br>
 Either accept .rtf files or have some markdown for italics, bold, strikethrough. <br>
 Integrate with Instagram API <br>

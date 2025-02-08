@@ -24,10 +24,13 @@ struct lineMaxes{
 
 
 //vector<string> poem; //should this be vector<string*>? Probs not. Surely string* is the default. 
-int sideMarginPx = 60;
+int sideMarginPx = 0;
 int topMarginPx = 200;
 int lineSpacing = 60;
 //vector<int> runs;
+
+//GravityType desiredGravity = NorthGravity; //for verse alignment
+GravityType desiredGravity = NorthWestGravity; //for verse alignment
 
 vector<vector<string>> verses;
 vector<lineMaxes> verseMaxes;
@@ -112,7 +115,7 @@ int getLongestLineLength(int ptSize, vector<string> lines, int numLines, Image i
 }
 
 int getPtSizeTarget(string longestLine, Image image){
-    int targetWidth = 1080 - 2 * sideMarginPx;
+    int targetWidth = 1080 - (2 * sideMarginPx);
     //size_points = (size_pixels * 72)/resolution
 
 
@@ -257,9 +260,10 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
     std::cout << numLines <<" lines"<<", first line: " << lines[0] << "last line: " << lines[numLines - 1] << "\n";
 
     for(int i=0;i<numLines;i++){
-        Geometry currTextGeom(1080, 1080, sideMarginPx + (1080 - (2 * sideMarginPx) - maxLength)/2, topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
+        int tempwidth = maxLength;
+        Geometry currTextGeom(tempwidth, 1080, (1080/2 - maxLength/2), topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
         //Geometry currTextGeom(1080, 1080, sideMarginPx,  topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
-        outImage.annotate(lines.at(i), currTextGeom, NorthWestGravity);
+        outImage.annotate(lines.at(i), currTextGeom, desiredGravity);
     }
     //my_image.annotate(test, testGeom, WestGravity);
 
@@ -367,10 +371,10 @@ int main( ssize_t argc, char ** argv)
     }
     
 
-    int ptSize = getPtSizeTarget(verses[0][verseMaxes[0].longestLine], my_image);
+    int ptSize = getPtSizeTarget(verses[12][verseMaxes[12].longestLine], my_image);
     my_image.fontPointsize(ptSize);
 
-    int maxLines = getMaxPageLines(verses[0][verseMaxes[0].tallestLine], my_image);
+    int maxLines = getMaxPageLines(verses[12][verseMaxes[12].longestLine], my_image);
 
     //vector<int> optimumRuns;
 

@@ -29,11 +29,11 @@ int topMarginPx = 200;
 int lineSpacing = 60;
 //vector<int> runs;
 
-bool doPerImageFontTargets =false;
-bool centreVerticalAlign = false;
+bool doPerImageFontTargets =true;
+bool centreVerticalAlign = true;
 
-//GravityType desiredGravity = NorthGravity; //for verse alignment
-GravityType desiredGravity = NorthWestGravity; //for verse alignment
+GravityType desiredGravity = NorthGravity; //for verse alignment
+//GravityType desiredGravity = NorthWestGravity; //for verse alignment
 
 vector<vector<string>> verses;
 vector<lineMaxes> verseMaxes;
@@ -245,10 +245,19 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
     outImage.font("EVA-Matisse_Standard-EB");
     outImage.fontPointsize(fontSize);
 
+    int numLines = lines.size();
+
+    int centralisationOffset=0;
+    if(centreVerticalAlign){
+        int bottomOfText = topMarginPx + ((numLines+1-1) *(maxHeight + lineSpacing));
+        int bottomPossible = 1080 - maxHeight - topMarginPx;
+        centralisationOffset = (bottomPossible-bottomOfText)/2;
+    }
+
 
     TypeMetric tm;
 
-    int numLines = lines.size();
+    
     std::cout<<"reachedfine!" << numLines <<"b\n";
 
     //int maxLength = getLongestLineLength(fontSize, lines, numLines, outImage);
@@ -277,7 +286,7 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
 
     for(int i=0;i<numLines;i++){
         int tempwidth = maxLength;
-        Geometry currTextGeom(tempwidth, 1080, (1080/2 - maxLength/2), topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
+        Geometry currTextGeom(tempwidth, 1080, (1080/2 - maxLength/2), topMarginPx + (i *(maxHeight + lineSpacing))+centralisationOffset ); //w, h, xoff, yoff
         //Geometry currTextGeom(1080, 1080, sideMarginPx,  topMarginPx + (i *(maxHeight + lineSpacing))); //w, h, xoff, yoff
         outImage.annotate(lines.at(i), currTextGeom, desiredGravity);
     }

@@ -29,6 +29,9 @@ int topMarginPx = 200;
 int lineSpacing = 60;
 //vector<int> runs;
 
+bool doPerImageFontTargets =false;
+bool centreVerticalAlign = false;
+
 //GravityType desiredGravity = NorthGravity; //for verse alignment
 GravityType desiredGravity = NorthWestGravity; //for verse alignment
 
@@ -162,6 +165,17 @@ int getMaxPageLines(string tallestLine, Image image){
     return maxLines;
 }
 
+int getMinElementInArray(int* inpArray, int size){
+    int min = inpArray[0];
+    for(int i=0; i <size; i++){
+        if(inpArray[i] < min){
+            min = inpArray[i];
+        }
+    }
+    std::cout<<"min encountered: " << min << "\n";
+    return min;
+}
+
 int getMaxElementInArray(int* inpArray, int size){
     int max = inpArray[0];
     for(int i=0; i <size; i++){
@@ -230,6 +244,8 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
     Image outImage( Geometry(1080,1080), Color("white"));
     outImage.font("EVA-Matisse_Standard-EB");
     outImage.fontPointsize(fontSize);
+
+
     TypeMetric tm;
 
     int numLines = lines.size();
@@ -280,9 +296,24 @@ void createImages(vector<int> numVersesInImages, int fontSize, int maxHeight){
     std::cout<<"hi!\n" << numVersesInImages.size() << "\n" << fontSize << "\n" << maxHeight << "\n";
     int verseIndex =0;
 
+    //
+    Image testImage( Geometry(1080,1080), Color("white"));
+    testImage.font("EVA-Matisse_Standard-EB");
+    //
+
+
+
     for(int i=0;i<numVersesInImages.size(); i++){
 
         vector<string> lines;
+
+          if(doPerImageFontTargets){ //TODO. 
+            int possibleFontSizeTargets[numVersesInImages[i]];
+            for(int j=0;j<numVersesInImages[i];j++){
+                possibleFontSizeTargets[j] = getPtSizeTarget(verses[j+verseIndex][verseMaxes[j+verseIndex].longestLine], testImage);
+            }
+            fontSize = getMinElementInArray(possibleFontSizeTargets, numVersesInImages[i]);
+          }
 
         for(int j = 0; j < numVersesInImages[i];j++){
             
@@ -338,8 +369,6 @@ int main( ssize_t argc, char ** argv)
 
     int lineCounter=0;
     
-    
-
     for(int i =0;i<verses.size();i++){
         std::cout<< "verses[" << i << "] size: " << verses[i].size() << "\n";
         for(int j =0;j<verses[i].size();j++){
@@ -369,12 +398,24 @@ int main( ssize_t argc, char ** argv)
     for(int i=0;i<verses.size();i++){
         std::cout<< "verse" << i <<"longest line: " << verseMaxes[i].longestLine << "\n" << verseMaxes[i].maxWidth << "\n";
     }
-    
 
-    int ptSize = getPtSizeTarget(verses[12][verseMaxes[12].longestLine], my_image);
+    //get longest verse for point size calculation.
+    int longestVerse = 0;
+    int longestVerseLine = verseMaxes[0].maxWidth;
+    for(int i=1;i<verseMaxes.size();i++){
+        if(verseMaxes[i].maxWidth > longestVerseLine){
+            longestVerseLine = verseMaxes[i].maxWidth;
+            longestVerse = i;
+        }
+    }
+
+    std::cout<< "longest verse: " << longestVerse << ", longest line: " << longestVerseLine << "\n";
+    
+    //should be of longest line
+    int ptSize = getPtSizeTarget(verses[longestVerse][verseMaxes[longestVerse].longestLine], my_image);
     my_image.fontPointsize(ptSize);
 
-    int maxLines = getMaxPageLines(verses[12][verseMaxes[12].longestLine], my_image);
+    int maxLines = getMaxPageLines(verses[longestVerse][verseMaxes[longestVerse].longestLine], my_image);
 
     //vector<int> optimumRuns;
 

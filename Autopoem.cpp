@@ -10,6 +10,9 @@
 #include <fstream>
 #include <vector>
 
+#include <unistd.h>
+#include <stdio.h>
+
 
  using namespace Magick;
  using namespace std; //this is supposedly bad practice. But this is a small project, so should be fine?
@@ -22,15 +25,18 @@ struct lineMaxes{
     int maxHeight = 0;
 };
 
-//PARAMETERS
+//USER-SET PARAMETERS
 int sideMarginPx = 0;
 int topMarginPx = 200;
 int lineSpacing = 60;
 
 const string fontFilename = "EVA-Matisse_Standard-EB";
 
-bool doPerImageFontTargets =true;
+bool doPerImageFontTargets = true;
 bool centreVerticalAlign = true;
+bool checkMode = false;
+bool stdinpoem = false;
+string userpoem = "seapoemspooky.txt";
 
 GravityType desiredGravity = NorthGravity; //for verse alignment
 //GravityType desiredGravity = NorthWestGravity; //for verse alignment
@@ -42,23 +48,22 @@ vector<int> numVersesInImages;
 
 
 
-int readPoem(){
+int readPoem(string filename){
 
-     //ifstream f(argv[1] + ".txt");
-    ifstream f("seapoemspooky.txt"); //debug
-
+    ifstream f(filename);
+    
     if (!f.is_open()) {
         cerr << "read error\n";
         return -1;
     }
+
     string s;
     bool newVerseFlag = 0;
     vector<string>* currentVerse;
     currentVerse = new vector<string>; 
 
-    for (int i=0;getline(f, s) ;i++){
+    for (int i=0; getline(f, s) ;i++){
         
-        //if(((*currentVerse).size() > 0)&&(newVerseFlag)){
         if((newVerseFlag) && s!= ""){
                 verses.push_back(*currentVerse);
                 currentVerse = new vector<string>; 
@@ -77,34 +82,50 @@ int readPoem(){
     verses.push_back(*currentVerse);
 
     f.close();
-
     return 0;
 }
 
-void printVector(vector<string> in){ 
-    for(int i=0;i<in.size();i++){
-        std::cout << i << ": " << in[i];
+int readStdInPoem(){
+    string s;
+    bool newVerseFlag = 0;
+    vector<string>* currentVerse;
+    currentVerse = new vector<string>; 
+
+    for (int i=0; getline(std::cin, s) ;i++){
+        
+        if((newVerseFlag) && s!= ""){
+                verses.push_back(*currentVerse);
+                currentVerse = new vector<string>; 
+                newVerseFlag = 0;
+        }
+
+        if(s == ""){ 
+            newVerseFlag = 1;
+            
+        } else {
+           (*currentVerse).push_back(s); 
+        }
+
     }
+
+    verses.push_back(*currentVerse);
+    return 0;
 }
 
-void trimArray(vector<string> in){
+
+void trimArray(vector<string> in){ //unnecessary but I'm keeping it for now in case debugging deems it necessary
     return;
-    //int start = 0;
-    //int end = *sizePtr -1;
     while(in.front() == ""){
         in.erase(in.begin());
     }
     while(in.back() == ""){
         in.pop_back();
     }
-    //*sizePtr = end - start + 1;
-    //return &array[start];
 }
 
 int getLongestLineLength(int ptSize, vector<string> lines, int numLines, Image image){ //this doesn't decay. numLines always equals lines.size() 
     TypeMetric currLineMetrics;
     int length = 0;
-
 
     for(int i=0;i< numLines;i++){
         image.fontTypeMetrics(lines.at(i), &currLineMetrics);
@@ -114,7 +135,6 @@ int getLongestLineLength(int ptSize, vector<string> lines, int numLines, Image i
     }
     
     return length;
-
 }
 
 int getPtSizeTarget(string longestLine, Image image){
@@ -123,8 +143,8 @@ int getPtSizeTarget(string longestLine, Image image){
 
 
     TypeMetric currLineMetrics;
-    //should be an under-estimate.
-    int lower = (targetWidth)/ (longestLine.size());
+    
+    int lower = (targetWidth)/ (longestLine.size()); //should be an under-estimate.
     int higher = 100; //max acceptible size
     int test = lower;
 
@@ -158,7 +178,7 @@ int getMaxPageLines(string tallestLine, Image image){
     TypeMetric currLineMetrics;
     image.fontTypeMetrics(tallestLine, &currLineMetrics);
 
-    int lineHeight = currLineMetrics.textHeight();
+    int lineHeight = currLineMetrics.textHeight();//bad?
 
     int maxLines = (1080 - (2 * topMarginPx) ) / (lineHeight + lineSpacing);
 
@@ -238,6 +258,7 @@ lineMaxes getLineMaxes(vector<string> verse, Image* my_image, TypeMetric* currLi
 }
 
 void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight){
+    //maxHeight seems not to be what it should. Why?
 
     Image outImage( Geometry(1080,1080), Color("white"));
     //outImage.font("EVA-Matisse_Standard-EB");
@@ -356,10 +377,22 @@ void genNumVersesInImages(vector<vector<string>> verses, int maxLines){
 
 }
 
-int main( ssize_t argc, char ** argv)
-{
+int readUserOptions(int argc, char* argv[]){
     
-    if(readPoem()){
+    
+
+    return 0;
+}
+
+int main(int argc, char* argv[])
+{
+
+    readUserOptions(argc, argv);
+    if(stdinpoem){
+        if(readStdInPoem()){
+            return -1;
+        }
+    } else if(readPoem(userpoem)){ //debug poem
         return -1;
     }
 
@@ -418,11 +451,20 @@ int main( ssize_t argc, char ** argv)
         std::cout<< i << ",";
     }
     
-    std::cout<< "max page lines: " << maxLines << "\n";
+    //std::cout<< "max page lines: " << maxLines << "\n";
 
-    createImages(numVersesInImages, ptSize, verseMaxes[0].maxHeight);
+    if(checkMode){
+        std::cout<< "\nRequired background image dimensions: " << numVersesInImages.size() * 1080 << "x1080" << "\n\nPress Enter to continue.";
+
+        //wait for key input in case this is a windows system or some other case where terminal auto-closes.
+        int c;
+        c = getchar();
+        
+        return 0;
+    } 
+
+    createImages(numVersesInImages, ptSize, verseMaxes[0].maxHeight); //using verseMaxes[0].maxHeight is perhaps lazy, but I think it unlikely this will ever be an issue.
     
-
     return 0;
 }
 

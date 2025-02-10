@@ -26,6 +26,7 @@ struct lineMaxes{
 };
 
 //USER-SET PARAMETERS
+int IMAGE_WIDTH = 1080;
 int sideMarginPx = 0;
 int topMarginPx = 200;
 int lineSpacing = 60;
@@ -138,7 +139,7 @@ int getLongestLineLength(int ptSize, vector<string> lines, int numLines, Image i
 }
 
 int getPtSizeTarget(string longestLine, Image image){
-    int targetWidth = 1080 - (2 * sideMarginPx);
+    int targetWidth = IMAGE_WIDTH - (2 * sideMarginPx);
     //size_points = (size_pixels * 72)/resolution
 
 
@@ -260,7 +261,7 @@ lineMaxes getLineMaxes(vector<string> verse, Image* my_image, TypeMetric* currLi
 void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight){
     //maxHeight seems not to be what it should. Why?
 
-    Image outImage( Geometry(1080,1080), Color("white"));
+    Image outImage( Geometry(IMAGE_WIDTH,1080), Color("white"));
     //outImage.font("EVA-Matisse_Standard-EB");
     outImage.font(fontFilename);
     outImage.fontPointsize(fontSize);
@@ -299,7 +300,7 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
 
     for(int i=0;i<numLines;i++){
         int tempwidth = maxLength;
-        Geometry currTextGeom(tempwidth, 1080, (1080/2 - maxLength/2), topMarginPx + (i *(maxHeight + lineSpacing))+centralisationOffset ); //w, h, xoff, yoff
+        Geometry currTextGeom(tempwidth, IMAGE_WIDTH, (IMAGE_WIDTH/2 - maxLength/2), topMarginPx + (i *(maxHeight + lineSpacing))+centralisationOffset ); //w, h, xoff, yoff
         outImage.annotate(lines.at(i), currTextGeom, desiredGravity);
     }
 
@@ -316,7 +317,7 @@ void createImages(vector<int> numVersesInImages, int fontSize, int maxHeight){
     int verseIndex =0;
 
     //used to determine per-image font size
-    Image testImage( Geometry(1080,1080), Color("white"));
+    Image testImage( Geometry(IMAGE_WIDTH,1080), Color("white"));
     testImage.font(fontFilename);
 
 
@@ -378,7 +379,7 @@ void genNumVersesInImages(vector<vector<string>> verses, int maxLines){
 }
 
 int readUserOptions(int argc, char* argv[]){
-    
+
     
 
     return 0;
@@ -410,7 +411,7 @@ int main(int argc, char* argv[])
     InitializeMagick(*argv);
 
 
-    Image my_image( Geometry(1080,1080), Color("white"));
+    Image my_image( Geometry(IMAGE_WIDTH,1080), Color("white"));
     // set the text rendering font (the color is determined by the "current" image setting)
     my_image.font(fontFilename);
     
@@ -454,7 +455,7 @@ int main(int argc, char* argv[])
     //std::cout<< "max page lines: " << maxLines << "\n";
 
     if(checkMode){
-        std::cout<< "\nRequired background image dimensions: " << numVersesInImages.size() * 1080 << "x1080" << "\n\nPress Enter to continue.";
+        std::cout<< "\nRequired background image dimensions: " << numVersesInImages.size() * IMAGE_WIDTH << "x1080" << "\n\nPress Enter to continue.";
 
         //wait for key input in case this is a windows system or some other case where terminal auto-closes.
         int c;

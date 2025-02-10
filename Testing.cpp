@@ -64,14 +64,19 @@ void drawTestImage()
 }
 
 //FLAGS
-const int NAMEBUFFERSIZE = 60;
-int VISUALISE_MODE = 0;
-char INPUT_FILE[NAMEBUFFERSIZE];
-char OUTPUT_FILE[NAMEBUFFERSIZE];
+int width = -1;
 
+vector<char> infile;
+string title;
+int useSameImage = false;
+vector<char> prefix;
+
+//https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option const long_options[] = //see https://linux.die.net/man/3/getopt_long //this is a struct option
   { //char *name, int has_arg, int *flag (pointer to load val into if flag true), int val  
-    {"visualise", 0, &VISUALISE_MODE, 1},
+  //help stdin fontcolour bgcolour sameimage title
+    {"sameimage", 0, 0, 1},
+    {"sameimage", 0, &useSameImage, 1},
     {NULL, 0, NULL, 0} //required convention. Acts as a terminator struct for the thing reading long_options.
   };
 
@@ -79,7 +84,7 @@ int parseFlags(int argc, char* argv[]){
 
 
     int c;
-    while ( (c = getopt_long(argc, argv, "i:o:", long_options, NULL)) != -1){
+    while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:pi:o:", long_options, NULL)) != -1){
         switch(c){
             
             case 'i':
@@ -90,7 +95,29 @@ int parseFlags(int argc, char* argv[]){
         
     }
     if(INPUT_FILE[0] == '\0' || OUTPUT_FILE[0] == '\0'){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
-         fprintf (stderr, "Incorrect arguments. Usage: MusWeb -i infile.m3u -o outfile.\n");
+         fprintf (stderr, "Invalid arguments. Available commands (case sensitive):\n\n"
+         "-W [num] = set image width to be [num] pixels\n"
+         "-d = get required dimensions for background image\n"
+         "-f [font] = use font [font]. Can specify exact filename (relative) or family name as in fc-list o.e. can also symlink into this directory.\n"
+         "--title \"example multi word title\" = create title card with specified title. Use speech marks to enclose.\n"
+         "-T = use first verse as title. Allows title to be broken over multiple lines.\n"
+         "-k 0100110011... = add key/legend to title card. Masks files named [0.png,1.png,2.png,...]. arranges in a 2x8 grid below title card. Right-padded with zeroes. Right MSB.\n"
+         "-K [hex] = same as above but as 4 hex digits\n"
+         "-b [image] = use [image] as a background image\n"
+         "-B [image] = use [image] as a titlecard background image\n"
+         "--sameimage [image] = repeat same 1080x1080 square image as a background\n"
+         "--fontcolour [#ABC123] = set font colour to be hex code supplied in [#ABC123]. requires hash.\n"
+         "--bgcolour [#ABC123] use a solid bg colour. see above.\n"
+         "-c = vertically centre verses (aligned to top by default)\n"
+         "-l = left-justify text in verses (centred by default) \n"
+         "-t [num] = set top margin to be [num] pixels\n"
+         "-s [num] = set side margin to be [num] pixels\n"
+         "-p = do per-image font resizing (maximise text size on a per-image basis)\n"
+         "-i [file.txt] = read from file.txt"
+         "-o [prefix] = prefix images "
+         "--linespacing [num] = space lines by [num] pixels. Default is 60.\n"
+         "--stdin = read poem from stdin instead of from -i flag\n"
+         "--help = print this dialogue\n"); 
          return -1;
     }
     return 0;

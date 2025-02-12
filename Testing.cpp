@@ -66,10 +66,10 @@ void drawTestImage()
 //FLAGS
 int width = -1;
 
-vector<char> infile;
+string infile;
 string title;
 int useSameImage = false;
-vector<char> prefix;
+string prefix;
 
 //https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option const long_options[] = //see https://linux.die.net/man/3/getopt_long //this is a struct option
@@ -86,15 +86,23 @@ int parseFlags(int argc, char* argv[]){
     int c;
     while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:pi:o:", long_options, NULL)) != -1){
         switch(c){
-            
+                        
             case 'i':
-            strcpy(INPUT_FILE, optarg); break;
+            {
+                std::string s(optarg);
+                infile = s; 
+                break;
+            }
             case 'o':
-            strcpy(OUTPUT_FILE, optarg); break;
+            {
+                std::string s(optarg);
+                prefix = s; 
+                break;
+            }
         }
         
     }
-    if(INPUT_FILE[0] == '\0' || OUTPUT_FILE[0] == '\0'){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
+    if(infile.size() == 0 || prefix.size()==0){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
          fprintf (stderr, "Invalid arguments. Available commands (case sensitive):\n\n"
          "-W [num] = set image width to be [num] pixels\n"
          "-d = get required dimensions for background image\n"
@@ -119,6 +127,8 @@ int parseFlags(int argc, char* argv[]){
          "--stdin = read poem from stdin instead of from -i flag\n"
          "--help = print this dialogue\n"); 
          return -1;
+    } else {
+        std::cout << "i: " << infile << ", o:" << prefix << "\n";
     }
     return 0;
 }

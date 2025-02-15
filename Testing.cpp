@@ -70,6 +70,8 @@ string infile;
 string title;
 int useSameImage = false;
 string prefix;
+int imageWidth = 1080;
+bool testMode = false;
 
 //https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option const long_options[] = //see https://linux.die.net/man/3/getopt_long //this is a struct option
@@ -80,12 +82,41 @@ static struct option const long_options[] = //see https://linux.die.net/man/3/ge
     {NULL, 0, NULL, 0} //required convention. Acts as a terminator struct for the thing reading long_options.
   };
 
+int parseInt(string s){
+    try{
+        int c = std::stoi(s);
+        return c;
+    } catch(std::invalid_argument){
+        
+    }
+    return 0;
+}
+
 int parseFlags(int argc, char* argv[]){
 
-
+    int option_index = 0;
     int c;
-    while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:pi:o:", long_options, NULL)) != -1){
+    while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:pi:o:", long_options, &option_index)) != -1){
         switch(c){
+            case 'W':
+            {
+                std::string s(optarg);
+                int parsedInt = parseInt(s);
+                if(!parsedInt){
+                    std::cout << "W argument requires integer value\n";
+                    return -1;
+                } else {
+                    imageWidth = parsedInt;
+                    std::cout << "parsed W as " << parsedInt << "\n";
+                }
+                break;
+            }
+            case 'd':
+            {
+                testMode = true;
+                std::cout << "test mode on\n";
+                break;
+            }
                         
             case 'i':
             {

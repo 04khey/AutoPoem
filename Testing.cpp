@@ -69,9 +69,11 @@ int width = -1;
 string infile;
 string title;
 int useSameImage = false;
-string prefix;
+string prefix = "image";
 int imageWidth = 1080;
 bool testMode = false;
+string fontFile;
+bool titleVerse = false;
 
 //https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option const long_options[] = //see https://linux.die.net/man/3/getopt_long //this is a struct option
@@ -96,7 +98,8 @@ int parseFlags(int argc, char* argv[]){
 
     int option_index = 0;
     int c;
-    while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:pi:o:", long_options, &option_index)) != -1){
+    bool helpFlag = false;
+    while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:pi:o:h", long_options, &option_index)) != -1){
         switch(c){
             case 'W':
             {
@@ -117,6 +120,21 @@ int parseFlags(int argc, char* argv[]){
                 std::cout << "test mode on\n";
                 break;
             }
+            case 'f':
+            {
+                std::string s(optarg);
+                fontFile = s; 
+                std::cout << "Using font file " << fontFile << "\n";
+                break;
+            }
+            case 'T':
+            {
+                titleVerse = true;
+                std::cout << "title verse active\n";
+                break;
+            }
+
+            
                         
             case 'i':
             {
@@ -130,10 +148,13 @@ int parseFlags(int argc, char* argv[]){
                 prefix = s; 
                 break;
             }
+
+            case 'h':
+            {helpFlag = true; break;}
         }
         
     }
-    if(infile.size() == 0 || prefix.size()==0){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
+    if(infile.size() == 0 || helpFlag){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
          fprintf (stderr, "Invalid arguments. Available commands (case sensitive):\n\n"
          "-W [num] = set image width to be [num] pixels\n"
          "-d = get required dimensions for background image\n"

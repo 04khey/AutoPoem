@@ -24,3 +24,7 @@
 
 #ignore VSCode stuff
 .vscode/*
+
+#ignore imagemagick files...
+ImageMagick7.1.1/*
+ImageMagick7.1.1/

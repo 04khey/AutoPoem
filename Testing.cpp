@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+//#include <gtest/gtest.h>
 #include <random>
 #include <iostream>
 #include <vector>
@@ -77,13 +77,30 @@ bool titleVerse = false;
 uint16_t legendBitMask = 0x8000; //=10....0
 string bgFile;
 string titleFile;
+string fontColourHex;
+string bgColourHex;
+
+bool verticalCentre = false;
+bool leftJustify = false;
+int topMargin = 200;
+int sideMargin = 0;
+int lineSpacing = 60;
+bool perImageFontResizing = false;
+
+bool useStdIn = false;
+
+
 
 //https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option const long_options[] = //see https://linux.die.net/man/3/getopt_long //this is a struct option
   { //char *name, int has_arg, int *flag (pointer to load val into if flag true), int val  
   //help stdin fontcolour bgcolour sameimage title
-    {"sameimage", 0, 0, 1},
+    //{"sameimage", 0, 0, 1},
     {"sameimage", 0, &useSameImage, 1},
+    {"fontcolour", 1, 0, '['}, 
+    {"bgcolour", 1, 0, ']'},
+    {"stdin", 0, 0, '@'},
+    {"help", 0, 0, 'h'},
     {NULL, 0, NULL, 0} //required convention. Acts as a terminator struct for the thing reading long_options.
   };
 
@@ -170,11 +187,89 @@ int parseFlags(int argc, char* argv[]){
                 std::cout << "Using bg image file " << titleFile << "\n";
                 break;
             }
-                        
+            case '[':
+             {
+                std::string s(optarg);
+                fontColourHex = s; 
+                std::cout << "font colour #" << s << "\n";
+                break;
+            }
+            case ']':
+             {
+                std::string s(optarg);
+                bgColourHex = s; 
+                std::cout << "bg colour #" << s << "\n";
+                break;
+            }
+            case 'c':
+            {
+                verticalCentre = true;
+                break;
+            }
+            case 'l':
+            {
+                leftJustify = true;
+                break;
+            }
+            case 't':
+            {
+                std::string s(optarg);
+                int parsedInt = parseInt(s);
+                if(!parsedInt){
+                    std::cout << "t argument requires integer value\n";
+                    return -1;
+                } else {
+                    topMargin = parsedInt;
+                    std::cout << "parsed t as " << parsedInt << "\n";
+                }
+                break;
+            }
+            case 's':
+            {
+                std::string s(optarg);
+                int parsedInt = parseInt(s);
+                if(!parsedInt){
+                    std::cout << "s argument requires integer value\n";
+                    return -1;
+                } else {
+                    sideMargin = parsedInt;
+                    std::cout << "parsed s as " << parsedInt << "\n";
+                }
+                break;
+            }
+            case 'L':
+            {
+                std::string s(optarg);
+                int parsedInt = parseInt(s);
+                if(!parsedInt){
+                    std::cout << "L argument requires integer value\n";
+                    return -1;
+                } else {
+                    lineSpacing = parsedInt;
+                    std::cout << "parsed L as " << parsedInt << "\n";
+                }
+                break;
+            }
+            case 'p':
+            {
+                perImageFontResizing = true;
+                break;
+            }      
             case 'i':
             {
                 std::string s(optarg);
                 infile = s; 
+                break;
+            }
+            case '@':
+            {
+                useStdIn = true;
+                std::cout << "reading from stdin\n";
+                break;
+            }
+            case '?':
+            {
+                //std::cout << "command not recognised.\n";
                 break;
             }
             case 'o':
@@ -201,12 +296,13 @@ int parseFlags(int argc, char* argv[]){
          "-b [image] = use [image] as a background image\n"
          "-B [image] = use [image] as a titlecard background image\n"
          "--sameimage [image] = repeat same 1080x1080 square image as a background\n"
-         "--fontcolour [#ABC123] = set font colour to be hex code supplied in [#ABC123]. requires hash.\n"
-         "--bgcolour [#ABC123] use a solid bg colour. see above.\n"
+         "--fontcolour [ABC123] = set font colour to be hex code [#ABC123]. requires no hash.\n"
+         "--bgcolour [ABC123] use a solid bg colour. see above.\n"
          "-c = vertically centre verses (aligned to top by default)\n"
          "-l = left-justify text in verses (centred by default) \n"
          "-t [num] = set top margin to be [num] pixels\n"
          "-s [num] = set side margin to be [num] pixels\n"
+         "-L [num] = set line spacing to be [num] pixels (60 by default)\n"
          "-p = do per-image font resizing (maximise text size on a per-image basis)\n"
          "-i [file.txt] = read from file.txt"
          "-o [prefix] = prefix images "

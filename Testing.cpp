@@ -74,6 +74,9 @@ int imageWidth = 1080;
 bool testMode = false;
 string fontFile;
 bool titleVerse = false;
+uint16_t legendBitMask = 0x8000; //=10....0
+string bgFile;
+string titleFile;
 
 //https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option const long_options[] = //see https://linux.die.net/man/3/getopt_long //this is a struct option
@@ -92,6 +95,14 @@ int parseInt(string s){
         
     }
     return 0;
+}
+
+uint16_t parseBinText(string s){
+    return legendBitMask; //TODO
+}
+
+uint16_t parseHexText(string s){
+    return legendBitMask; //TODO
 }
 
 int parseFlags(int argc, char* argv[]){
@@ -133,8 +144,32 @@ int parseFlags(int argc, char* argv[]){
                 std::cout << "title verse active\n";
                 break;
             }
-
-            
+            case 'k':{
+                std::string s(optarg);
+                legendBitMask = parseBinText(s);
+                std::cout << "legend bitmask active bin\n";
+                break;
+            }
+            case 'K':{
+                std::string s(optarg);
+                legendBitMask = parseHexText(s);
+                std::cout << "legend bitmask active hex\n";
+                break;
+            }
+            case 'b':
+            {
+                std::string s(optarg);
+                bgFile = s; 
+                std::cout << "Using bg image file " << bgFile << "\n";
+                break;
+            }
+            case 'B':
+            {
+                std::string s(optarg);
+                titleFile = s; 
+                std::cout << "Using bg image file " << titleFile << "\n";
+                break;
+            }
                         
             case 'i':
             {

@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
+//I think this is normally a cardinal sin but I just want to include all of parsePoemInput, so I do this
+#include "parsePoemInput.cpp"
 
  using namespace Magick;
  using namespace std; //this is supposedly bad practice. But this is a small project, so should be fine?
@@ -25,21 +27,26 @@ struct lineMaxes{
     int maxHeight = 0;
 };
 
+
+//USER PARAMS STRUCT
+USER_OPTS opts;
+
 //USER-SET PARAMETERS
-int IMAGE_WIDTH = 1080;
-int sideMarginPx = 0;
-int topMarginPx = 200;
-int lineSpacing = 60;
+//int IMAGE_WIDTH = 1080;
+//int sideMarginPx = 0;
+//int topMarginPx = 200;
+//int lineSpacing = 60;
 
 const string fontFilename = "EVA-Matisse_Standard-EB";
 
 bool doPerImageFontTargets = true;
 bool centreVerticalAlign = true;
-bool checkMode = false;
+//bool checkMode = false;
 bool stdinpoem = false;
 string userpoem = "seapoemspooky.txt";
 
-GravityType desiredGravity = NorthGravity; //for verse alignment
+GravityType desiredGravity;
+// = NorthGravity; //for verse alignment
 //GravityType desiredGravity = NorthWestGravity; //for verse alignment
 
 //GLOBALS
@@ -139,7 +146,7 @@ int getLongestLineLength(int ptSize, vector<string> lines, int numLines, Image i
 }
 
 int getPtSizeTarget(string longestLine, Image image){
-    int targetWidth = IMAGE_WIDTH - (2 * sideMarginPx);
+    int targetWidth = opts.imageWidth - (2 * opts.sideMargin);
     //size_points = (size_pixels * 72)/resolution
 
 
@@ -181,7 +188,7 @@ int getMaxPageLines(string tallestLine, Image image){
 
     int lineHeight = currLineMetrics.textHeight();//bad?
 
-    int maxLines = (1080 - (2 * topMarginPx) ) / (lineHeight + lineSpacing);
+    int maxLines = (1080 - (2 * opts.topMargin) ) / (lineHeight + opts.lineSpacing);
 
     return maxLines;
 }
@@ -261,17 +268,22 @@ lineMaxes getLineMaxes(vector<string> verse, Image* my_image, TypeMetric* currLi
 void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight){
     //maxHeight seems not to be what it should. Why?
 
-    Image outImage( Geometry(IMAGE_WIDTH,1080), Color("white"));
+    Image outImage( Geometry(opts.imageWidth,1080), opts.bgColour);
+    //Image outImage( Geometry(opts.imageWidth,1080), Color("white"));
+    
     //outImage.font("EVA-Matisse_Standard-EB");
     outImage.font(fontFilename);
     outImage.fontPointsize(fontSize);
+
+    outImage.fillColor(opts.fontColour);
+
 
     int numLines = lines.size();
 
     int centralisationOffset=0;
     if(centreVerticalAlign){
-        int bottomOfText = topMarginPx + ((numLines+1-1) *(maxHeight + lineSpacing));
-        int bottomPossible = 1080 - maxHeight - topMarginPx;
+        int bottomOfText = opts.topMargin + ((numLines+1-1) *(maxHeight + opts.lineSpacing));
+        int bottomPossible = 1080 - maxHeight - opts.topMargin;
         centralisationOffset = (bottomPossible-bottomOfText)/2;
     }
 
@@ -300,7 +312,7 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
 
     for(int i=0;i<numLines;i++){
         int tempwidth = maxLength;
-        Geometry currTextGeom(tempwidth, IMAGE_WIDTH, (IMAGE_WIDTH/2 - maxLength/2), topMarginPx + (i *(maxHeight + lineSpacing))+centralisationOffset ); //w, h, xoff, yoff
+        Geometry currTextGeom(tempwidth, opts.imageWidth, (opts.imageWidth/2 - maxLength/2), opts.topMargin + (i *(maxHeight + opts.lineSpacing))+centralisationOffset ); //w, h, xoff, yoff
         outImage.annotate(lines.at(i), currTextGeom, desiredGravity);
     }
 
@@ -308,7 +320,7 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
     sprintf(imNum, "%d\0", imageNum);
     string str(imNum);
 
-    outImage.write("Image" + str + ".png");
+    outImage.write(opts.prefix + str + ".png");
     
 }
 
@@ -317,15 +329,17 @@ void createImages(vector<int> numVersesInImages, int fontSize, int maxHeight){
     int verseIndex =0;
 
     //used to determine per-image font size
-    Image testImage( Geometry(IMAGE_WIDTH,1080), Color("white"));
+    Image testImage( Geometry(opts.imageWidth,1080), Color("white"));
     testImage.font(fontFilename);
+
+
 
 
     for(int i=0;i<numVersesInImages.size(); i++){
 
         vector<string> lines;
 
-          if(doPerImageFontTargets){ //TODO. 
+          if(opts.perImageFontResizing){ 
             int possibleFontSizeTargets[numVersesInImages[i]];
             for(int j=0;j<numVersesInImages[i];j++){
                 possibleFontSizeTargets[j] = getPtSizeTarget(verses[j+verseIndex][verseMaxes[j+verseIndex].longestLine], testImage);
@@ -378,18 +392,17 @@ void genNumVersesInImages(vector<vector<string>> verses, int maxLines){
 
 }
 
-int readUserOptions(int argc, char* argv[]){
-
-    
-
-    return 0;
-}
-
 int main(int argc, char* argv[])
 {
+    opts = parseFlags(argc, argv);
 
-    readUserOptions(argc, argv);
-    if(stdinpoem){
+    if(opts.malformed){
+        return -1;
+    }
+    opts.leftJustify ? desiredGravity = NorthWestGravity : desiredGravity = NorthGravity; 
+
+
+    if(opts.useStdIn){
         if(readStdInPoem()){
             return -1;
         }
@@ -411,7 +424,7 @@ int main(int argc, char* argv[])
     InitializeMagick(*argv);
 
 
-    Image my_image( Geometry(IMAGE_WIDTH,1080), Color("white"));
+    Image my_image( Geometry(opts.imageWidth,1080), Color("white"));
     // set the text rendering font (the color is determined by the "current" image setting)
     my_image.font(fontFilename);
     
@@ -454,8 +467,8 @@ int main(int argc, char* argv[])
     
     //std::cout<< "max page lines: " << maxLines << "\n";
 
-    if(checkMode){
-        std::cout<< "\nRequired background image dimensions: " << numVersesInImages.size() * IMAGE_WIDTH << "x1080" << "\n\nPress Enter to continue.";
+    if(opts.testMode){
+        std::cout<< "\nRequired background image dimensions: " << numVersesInImages.size() * opts.imageWidth << "x1080" << "\n\nPress Enter to continue.";
 
         //wait for key input in case this is a windows system or some other case where terminal auto-closes.
         int c;

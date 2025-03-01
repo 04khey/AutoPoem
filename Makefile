@@ -6,4 +6,4 @@ default:
 test:
 	c++ -O2 -o test Testing.cpp `Magick++-config --cppflags --cxxflags --ldflags --libs`
 parse:
-	c++ -O2 -o parse parsePoemInput.cpp 
+	c++ -O2 -o parse parsePoemInput.cpp `Magick++-config --cppflags --cxxflags --ldflags --libs`

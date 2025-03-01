@@ -1,36 +1,37 @@
-
-#include <random>
-#include <iostream>
-#include <vector>
-
 #include <stdio.h>
 #include <unistd.h>
 #include <fstream>
 #include <getopt.h> //for flag parsing
 
-using namespace std;
+//#include <ImageMagick-7/Magick++.h>
+//#include <stdio.h>
+//#include <iostream>
+
 
 
 typedef struct USER_OPTS{
 
     bool malformed = false;
 
-    //FLAGS
     int width = -1;
 
-    string infile;
-    string title;
+    std::string infile;
+    std::string title;
     int useSameImage = false;
-    string prefix = "image";
+    std::string prefix = "image";
     int imageWidth = 1080;
     bool testMode = false;
-    string fontFile;
+    std::string fontFile;
     bool titleVerse = false;
     uint16_t legendBitMask = 0x8000; //=10....0
-    string bgFile;
-    string titleFile;
-    string fontColourHex;
-    string bgColourHex;
+    std::string bgFile;
+    std::string titleFile;
+
+    std::string fontColourHex;
+    std::string bgColourHex;
+
+    Magick::Color fontColour;
+    Magick::Color bgColour;
 
     bool verticalCentre = false;
     bool leftJustify = false;
@@ -45,9 +46,6 @@ typedef struct USER_OPTS{
 
 int useSameImage = false;
 
-
-
-
 //https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option const long_options[] = //see https://linux.die.net/man/3/getopt_long //this is a struct option
   { //char *name, int has_arg, int *flag (pointer to load val into if flag true), int val  
@@ -61,7 +59,7 @@ static struct option const long_options[] = //see https://linux.die.net/man/3/ge
     {NULL, 0, NULL, 0} //required convention. Acts as a terminator struct for the thing reading long_options.
   };
 
-int parseInt(string s){
+int parseInt(std::string s){
     try{
         int c = std::stoi(s);
         return c;
@@ -71,11 +69,32 @@ int parseInt(string s){
     return 0;
 }
 
-uint16_t parseBinText(string s){
+uint16_t parseBinText(std::string s){
     return 0; //TODO
 }
 
-uint16_t parseHexText(string s){
+bool parseHexCode(std::string s, Magick::Color &colourVar){
+    int l = s.length();
+    if(l>=6 && l<=7){
+        if(l==6){
+            //prepend #
+            s.insert(0, "#");
+
+        }
+        //does this work as I think?
+        if(s[0] == '#'){
+                //Magick::Color parsedColour = Magick::Color(s);
+                colourVar = Magick::Color(s);
+                std::cout << "final parsed str: " << s << "\n";
+                return true;
+        }
+        
+    }
+    return false;
+}
+
+uint16_t parseHexText(std::string s){
+    
     return 0; //TODO
 }
 
@@ -88,7 +107,7 @@ USER_OPTS parseFlags(int argc, char* argv[]){
     int option_index = 0;
     int c;
     bool helpFlag = false;
-    while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:pi:o:h", long_options, &option_index)) != -1){
+    while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:L:pi:o:h", long_options, &option_index)) != -1){
         switch(c){
             case 'W':
             {
@@ -153,14 +172,27 @@ USER_OPTS parseFlags(int argc, char* argv[]){
              {
                 std::string s(optarg);
                 user_opts.fontColourHex = s; 
-                std::cout << "font colour #" << s << "\n";
+
+                if(!parseHexCode(s, user_opts.fontColour)){
+                    user_opts.malformed = true;
+                    std::cout << "could not parse hex code" << s << "\n";
+                } else{
+                    std::cout << (std::string) user_opts.fontColour << " is the colour now\n";
+                }
+
+                //std::cout << "font colour #" << s << "\n";
                 break;
             }
             case ']':
              {
                 std::string s(optarg);
                 user_opts.bgColourHex = s; 
-                std::cout << "bg colour #" << s << "\n";
+                if(!parseHexCode(s, user_opts.bgColour)){
+                    user_opts.bgColour = Magick::Color("white");
+                    std::cout << "could not parse bg hex" << s << "\n";
+                } else{
+                    std::cout << (std::string) user_opts.bgColour << " is the colour now\n";
+                }
                 break;
             }
             case 'c':
@@ -252,7 +284,7 @@ USER_OPTS parseFlags(int argc, char* argv[]){
     //since getopt_long takes pointer to int as a param and this doesn't exist until call, must do this.
     user_opts.useSameImage = useSameImage; 
 
-    if(user_opts.infile.size() == 0 || helpFlag){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
+    if( (user_opts.infile.size() == 0 && !user_opts.useStdIn) || helpFlag){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
          fprintf (stderr, "Invalid arguments. Available commands (case sensitive):\n\n"
          "-W [num] = set image width to be [num] pixels\n"
          "-d = get required dimensions for background image\n"
@@ -287,13 +319,14 @@ USER_OPTS parseFlags(int argc, char* argv[]){
 }
 
 
+/*
 
 int main(int argc, char * argv[]){
 
     USER_OPTS opt = parseFlags(argc, argv);
 
     if(opt.useStdIn){
-        string s;
+        std::string s;
 
         for (int i=0;std::getline(std::cin, s) ;i++){
         
@@ -303,4 +336,4 @@ int main(int argc, char * argv[]){
     
     }
 
-}
+}*/

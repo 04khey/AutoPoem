@@ -106,7 +106,11 @@ USER_OPTS parseFlags(int argc, char* argv[]){
 
     int option_index = 0;
     int c;
+    
+    //Defaults
     bool helpFlag = false;
+    user_opts.bgColour = Magick::Color("white");
+
     while ( (c = getopt_long(argc, argv, "W:df:Tk:K:b:B:clt:s:L:pi:o:h", long_options, &option_index)) != -1){
         switch(c){
             case 'W':
@@ -188,7 +192,6 @@ USER_OPTS parseFlags(int argc, char* argv[]){
                 std::string s(optarg);
                 user_opts.bgColourHex = s; 
                 if(!parseHexCode(s, user_opts.bgColour)){
-                    user_opts.bgColour = Magick::Color("white");
                     std::cout << "could not parse bg hex" << s << "\n";
                 } else{
                     std::cout << (std::string) user_opts.bgColour << " is the colour now\n";

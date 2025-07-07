@@ -12,6 +12,7 @@ This is, therefore, a repeated process aiming to maximise text size and minimise
 
 ## Build: 
 ImageMagick <br>
+libmagick++-dev <br>
 Magick++ header files
 
 ## Run:

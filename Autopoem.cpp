@@ -37,7 +37,7 @@ USER_OPTS opts;
 //int topMarginPx = 200;
 //int lineSpacing = 60;
 
-const string fontFilename = "EVA-Matisse_Standard-EB";
+const string fontFilename = "EVA-Matisse_Standard.ttf";
 
 bool doPerImageFontTargets = true;
 bool centreVerticalAlign = true;
@@ -217,6 +217,7 @@ vector<int> squeezeRuns(int maxLines, vector<int> runsIn){
     int runningCount =0;
     vector<int> squeezed;
     for(int i=0;i<runsIn.size();i++){
+        
         if(runsIn[i] > maxLines){
             if(runningCount > 0){
                 squeezed.push_back(runningCount);
@@ -370,11 +371,16 @@ void createImages(vector<int> numVersesInImages, int fontSize, int maxHeight){
 void genNumVersesInImages(vector<vector<string>> verses, int maxLines){
     int currentVerseCount=0;
     int currentLineCount=0;
+    bool firstVerse = true;
 
     for(vector<string> verse : verses){
         //std::cout<< "verse starting \n"<<verse[0] << "\n.verseCount: " << currentVerseCount << ", lineCount: " << currentLineCount << "\n";
         //TODO: if verse longer than maxlines, chunk verse and generate new verses vector
-        if((verse.size() + 1 + currentLineCount > maxLines) && currentVerseCount>0){
+        if(firstVerse && opts.titleVerse){
+            //treat first verse as a title card
+            numVersesInImages.push_back(1);
+            firstVerse = false;
+        } else if((verse.size() + 1 + currentLineCount > maxLines) && currentVerseCount>0){
             numVersesInImages.push_back(currentVerseCount);
             currentVerseCount = 1;
             currentLineCount = verse.size(); 

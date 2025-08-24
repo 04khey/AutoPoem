@@ -70,6 +70,9 @@ int readPoem(string filename){
     vector<string>* currentVerse;
     currentVerse = new vector<string>; 
 
+
+
+
     for (int i=0; getline(f, s) ;i++){
         
         if((newVerseFlag) && s!= ""){
@@ -376,7 +379,7 @@ void genNumVersesInImages(vector<vector<string>> verses, int maxLines){
     for(vector<string> verse : verses){
         //std::cout<< "verse starting \n"<<verse[0] << "\n.verseCount: " << currentVerseCount << ", lineCount: " << currentLineCount << "\n";
         //TODO: if verse longer than maxlines, chunk verse and generate new verses vector
-        if(firstVerse && opts.titleVerse){
+        if(firstVerse && (opts.titleVerse || !opts.title.empty())){
             //treat first verse as a title card
             numVersesInImages.push_back(1);
             firstVerse = false;
@@ -407,6 +410,13 @@ int main(int argc, char* argv[])
     }
     opts.leftJustify ? desiredGravity = NorthWestGravity : desiredGravity = NorthGravity; 
 
+    //prepend verses with title
+    if(!opts.title.empty()){
+        
+        vector<string> titleVerse; 
+        titleVerse.push_back(opts.title);
+        verses.push_back(titleVerse);
+    }
 
     if(opts.useStdIn){
         if(readStdInPoem()){

@@ -56,6 +56,7 @@ static struct option const long_options[] = //see https://linux.die.net/man/3/ge
     {"bgcolour", 1, 0, ']'},
     {"stdin", 0, 0, '@'},
     {"help", 0, 0, 'h'},
+    {"title", 1, 0, '*'},
     {NULL, 0, NULL, 0} //required convention. Acts as a terminator struct for the thing reading long_options.
   };
 
@@ -131,6 +132,13 @@ USER_OPTS parseFlags(int argc, char* argv[]){
             {
                 user_opts.testMode = true;
                 std::cout << "test mode on\n";
+                break;
+            }
+            case '*':
+            {
+                std::string s(optarg);
+                user_opts.title = s;
+                std::cout << "Using title " << user_opts.title << "\n";
                 break;
             }
             case 'f':

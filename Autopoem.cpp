@@ -53,6 +53,7 @@ GravityType desiredGravity;
 vector<vector<string>> verses;
 vector<lineMaxes> verseMaxes;
 vector<int> numVersesInImages;
+vector<Image> bgImageArray;
 
 
 
@@ -269,11 +270,53 @@ lineMaxes getLineMaxes(vector<string> verse, Image* my_image, TypeMetric* currLi
     return currLineMaxes;
 }
 
-void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight){
+int generateBgImageArray(){
+    //assume !opts.bgFile.isEmpty()
+    int width = opts.imageWidth;
+    string filename = opts.bgFile;
+
+    Image testImg;
+    try{
+        testImg.read(filename);
+        int imWidth = testImg.size().width();
+        std::cout << "width of bg image: " << imWidth << "\n";
+        int numNeeded = (imWidth / width);
+        for(int i=0;i<numNeeded;i++){
+            Image tempImage;
+            tempImage.read(filename);
+            
+            Geometry cropGeom = Geometry(opts.imageWidth,1080,opts.imageWidth*i,0); //w,h,xoff,yoff
+            std::cout << "indexed " << opts.imageWidth*i << " into bgImage for index " << i << "\n";
+            
+            tempImage.crop(cropGeom);
+            bgImageArray.push_back(tempImage);
+
+        }
+
+    } catch( Exception &error_) {
+        cout << "Caught exception: " << error_.what() << endl; 
+        return -1; 
+    } 
+  return 0; 
+}
+
+//TODO
+void createTitleCard(vector<string> titleLines, string filename, int fontSize){
+
+}
+
+void createImage(vector<string> lines, int fontSize, int imageNum, int imageSuffix, int maxHeight){
     //maxHeight seems not to be what it should. Why?
 
     Image outImage( Geometry(opts.imageWidth,1080), opts.bgColour);
     //Image outImage( Geometry(opts.imageWidth,1080), Color("white"));
+    
+    if(!opts.bgFile.empty()){
+        Image BGImage = bgImageArray[imageSuffix];
+        DrawableCompositeImage drawIt = DrawableCompositeImage(0,0,BGImage);
+        std::cout << "width of bg image being drawn: " << drawIt.width() << "\n";
+        outImage.draw(drawIt);
+    }
     
     //outImage.font("EVA-Matisse_Standard-EB");
     outImage.font(fontFilename);
@@ -321,7 +364,7 @@ void createImage(vector<string> lines, int fontSize, int imageNum, int maxHeight
     }
 
     char imNum[5]; //will go out of bounds if > 99,999 images but I think there will be other problems then
-    sprintf(imNum, "%d\0", imageNum);
+    sprintf(imNum, "%d\0", imageSuffix);
     string str(imNum);
 
     outImage.write(opts.prefix + str + ".png");
@@ -363,7 +406,7 @@ void createImages(vector<int> numVersesInImages, int fontSize, int maxHeight){
         }
 
 
-        createImage(lines, fontSize, i, maxHeight);
+        createImage(lines, fontSize, i, i+1, maxHeight);
 
         verseIndex += numVersesInImages[i];
     }
@@ -416,6 +459,10 @@ int main(int argc, char* argv[])
         vector<string> titleVerse; 
         titleVerse.push_back(opts.title);
         verses.push_back(titleVerse);
+    }
+
+    if(!opts.bgFile.empty()){
+        generateBgImageArray();
     }
 
     if(opts.useStdIn){

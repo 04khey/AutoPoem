@@ -23,7 +23,8 @@ typedef struct USER_OPTS{
     bool testMode = false;
     std::string fontFile;
     bool titleVerse = false;
-    uint16_t legendBitMask = 0x8000; //=10....0
+    uint16_t legendBitMask = 0x0000; //=10....0
+    bool useLegend = false;
     std::string bgFile;
     std::string titleFile;
 
@@ -42,6 +43,8 @@ typedef struct USER_OPTS{
 
     bool useStdIn = false;
 } USER_OPTS;
+
+struct USER_OPTS user_opts;
 
 
 int useSameImage = false;
@@ -71,7 +74,32 @@ int parseInt(std::string s){
 }
 
 uint16_t parseBinText(std::string s){
-    return 0; //TODO
+    if(s.size() == 16){ //needs to end with null term
+        std::cout << "s: " << s << "\n";
+        
+        uint16_t masked = 0x0000;
+
+        for(int i=0;i<16;i++){
+            switch(s[i]){
+                case '1':
+                masked |= 0x8000 >> (i);
+                break;
+                case '0':
+                break;
+                default:
+                std::cout<< "unable to parse binary mask. Malformed char " << s[i] << " .\n";
+                user_opts.malformed = true;
+                return -1;
+            }
+
+        } 
+        printf("parsed binary mask as uint16 0x%04x.\n", masked);
+    
+        return 0;
+    }
+    std::cout<< "unable to parse binary mask. Must be 16 binary characters.\n";
+    user_opts.malformed = true;
+    return -1;
 }
 
 bool parseHexCode(std::string s, Magick::Color &colourVar){
@@ -95,13 +123,30 @@ bool parseHexCode(std::string s, Magick::Color &colourVar){
 }
 
 uint16_t parseHexText(std::string s){
-    
-    return 0; //TODO
+    try{
+        std::size_t index;
+        long asLong = std::stoul(s,&index,16);
+        if(index && index < 4){
+            printf("invalid hex character %c at position %d.\n", s[index], index);
+            user_opts.malformed = true;
+            return -1;
+        }
+        printf("parsed binary mask as long 0x%04x.\n", asLong);
+        uint16_t as16 = static_cast<uint16_t>(asLong);
+        printf("parsed long as 0x%04x.\n", as16);
+        return as16;
+    } catch (std::invalid_argument const& ex) {
+        printf("invalid arg %s", ex);
+    } catch (std::out_of_range const& ex){
+        printf("out of range %s", ex);
+    }
+    user_opts.malformed = true;
+    return -1; //TODO
 }
 
 USER_OPTS parseFlags(int argc, char* argv[]){
 
-    struct USER_OPTS user_opts;
+    //struct USER_OPTS user_opts;
 
     
 
@@ -157,12 +202,14 @@ USER_OPTS parseFlags(int argc, char* argv[]){
             case 'k':{
                 std::string s(optarg);
                 user_opts.legendBitMask = parseBinText(s);
+                
                 std::cout << "legend bitmask active bin\n";
                 break;
             }
             case 'K':{
                 std::string s(optarg);
                 user_opts.legendBitMask = parseHexText(s);
+                user_opts.useLegend = true;
                 std::cout << "legend bitmask active hex\n";
                 break;
             }
@@ -295,7 +342,7 @@ USER_OPTS parseFlags(int argc, char* argv[]){
     //since getopt_long takes pointer to int as a param and this doesn't exist until call, must do this.
     user_opts.useSameImage = useSameImage; 
 
-    if( (user_opts.infile.size() == 0 && !user_opts.useStdIn) || helpFlag){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
+    if( (user_opts.infile.size() == 0 && !user_opts.useStdIn) || helpFlag || user_opts.malformed){ //probably a standard way to do this with lib. Also -i test -o --visualise gives bad behaviour.
          fprintf (stderr, "Invalid arguments. Available commands (case sensitive):\n\n"
          "-W [num] = set image width to be [num] pixels\n"
          "-d = get required dimensions for background image\n"
